@@ -2,8 +2,11 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
 import aiohttp
+import logging
 from .const import DOMAIN, CONF_USERNAME, CONF_PASSWORD, CONF_APP_ID, CONF_APP_SECRET, CONF_BASE_URL, CONF_START_MONTH    
 from .api import async_get_token
+
+_LOGGER = logging.getLogger(__name__)
 
 DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_USERNAME): str,
@@ -35,6 +38,7 @@ class DeyeCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data=user_input
                 )
             except Exception as e:
+                _LOGGER.error("Authentication setup failed: %s", e)
                 errors["base"] = f"auth_failed: {str(e)}"
 
         return self.async_show_form(
@@ -66,6 +70,7 @@ class DeyeCloudConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self.hass.config_entries.async_reload(self.config_entry.entry_id)
                 return self.async_finish()  # Sử dụng async_finish thay vì async_abort
             except Exception as e:
+                _LOGGER.error("Options update failed: %s", e)
                 errors["base"] = f"auth_failed: {str(e)}"
 
         # Pre-fill the form with current values
